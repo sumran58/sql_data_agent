@@ -82,7 +82,7 @@ def is_safe_sql(state:AgentSchema)->AgentSchema:
     {sql_query}"""
     response=llm_judge.invoke(prompt).model_dump() #get the structured output in the form of dictionary
     state.is_safe=response['answer']
-    state.comments=response['commnets']
+    state.comments=response['comments']
     return state
 
 #cancel query node
@@ -156,14 +156,54 @@ sql_agent_graph.add_edge("prompt_query_context", "generate_sql")
 sql_agent_graph.add_edge("generate_sql", "is_safe_sql")
 #creating a confitional function 
 def is_safe_sql_edge(state:AgentSchema)->str:
-    is_safe=state.is_safe_sql_response
+    is_safe=state.is_safe
     if is_safe.lower()=='yes':
-        return execute_sql
+        return "execute_sql"
     else:
-        return canceled_sql
+        return "canceled_sql"
 
-sql_agent_graph.add_conditional_edges("is_safe_sql",is_safe_sql_edge)
+sql_agent_graph.add_conditional_edges("is_safe_sql",is_safe_sql_edge,{
+                                          "execute_sql": "execute_sql",
+                                          "canceled_sql": "canceled_sql"
+                                      })
 sql_agent_graph.add_edge("canceled_sql",END)
 sql_agent_graph.add_edge("execute_sql","represent_final_answer")
 sql_agent_graph.add_edge("represent_final_answer",END)
 
+#compile the graph
+sql_analyst = sql_agent_graph.compile()
+
+from IPython.display import display, Image
+img = Image(sql_analyst.get_graph().draw_mermaid_png())
+with open("sql_analyst_graph.png", "wb") as f:
+        f.write(img.data)
+
+input_schema = {
+        "messages": [],
+        "user_question": "What are the different types of Payment Methods we have in our database",
+        "curated_ques": "",
+        "prompt_query_context": "",
+        "generated_sql_query": "",
+        "is_safe": "No",
+        "comments": "",
+        "sql_query_execution_result": "",
+        "final_answer": ""
+    }
+sql_analyst_response = sql_analyst.invoke(input_schema)
+print("\n CURATED QUESTION ")
+print(sql_analyst_response["curated_ques"])
+
+print("\n GENERATED SQL ")
+print(sql_analyst_response["generated_sql_query"])
+
+print("\n SQL SAFETY ")
+print(sql_analyst_response["is_safe"])
+
+print("\n JUDGE COMMENTS ")
+print(sql_analyst_response["comments"])
+
+print("\n EXECUTION RESULT ")
+print(sql_analyst_response["sql_query_execution_result"])
+
+print("\n FINAL ANSWER ")
+print(sql_analyst_response["final_answer"])
