@@ -1,0 +1,24 @@
+[project]
+name = "data-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Sumran Harchirkar", email = "sumranharchirkar58@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "dotenv>=0.9.9",
+    "langchain>=1.4.0",
+    "langchain-groq>=1.1.3",
+    "langgraph>=1.2.11",
+    "psycopg2-binary>=2.9.12",
+    "pydantic>=2.13.5",
+]
+
+[project.scripts]
+data-agent = "data_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
