@@ -66,8 +66,25 @@ class ETLTools:
 
         return top_3_rows
 
+    def execute_code(self,code:str):
+        """
+        This tool executes the provided code and returns the output.
+
+        Args:
+            code (str): The code to be executed.
+        Returns:
+            str: The output of the executed code or an error message if execution fails.
+        """
+
+        try:
+            exec(code)
+            return "Code executed successfully."
+        except Exception as e:
+            return f"Failed to execute code: {e}"
+
 
 
 if __name__=="__main__":
     obj=ETLTools()
-    print(obj.extract_load("https://pokeapi.co/api/v2/pokemon/","data/extract","csv"))
+    path="data//extract//extracted data .csv"
+    print(obj.transform_load_context(path))
