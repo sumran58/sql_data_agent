@@ -18,3 +18,6 @@ class JudgeSchema(BaseModel):
     answer:Literal["Yes","No"]=Field(...,description="Indicates whether the generated sql query is safe or not")
     comments:str=Field(...,description="additional comments or the feedback regarding the sql query from the llm judge")
 
+class EtlAgentSchema(BaseModel):
+    messages:Annotated[list,add]=Field(...,description="lits of messages to be processed by the etl agent ")
+
