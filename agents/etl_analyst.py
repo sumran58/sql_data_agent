@@ -101,3 +101,26 @@ def llm_node(state:ETLAgentSchema):
 
     return state
 
+
+def tool_node(state:ETLAgentSchema):
+    """
+    This node is responsible for invoking the appropriate tool based on the user's question and the context provided by the LLM.
+    """
+
+    tools_results = []
+
+    tools_by_name = {tool.name: tool for tool in tools}
+
+    tool_calls = state.messages[-1].tool_calls
+
+    for tool_call in tool_calls:
+
+        tool = tools_by_name[tool_call['name']]
+        observation = tool.invoke(tool_call['args'])
+
+        tools_results.append(ToolMessage(content=observation, tool_call_id = tool_call['id']))
+
+    state.messages = state.messages + tools_results
+
+    return state   
+
