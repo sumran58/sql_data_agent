@@ -124,3 +124,46 @@ def tool_node(state:ETLAgentSchema):
 
     return state   
 
+
+etl_analyst_graph=StateGraph(ETLAgentSchema)
+etl_analyst_graph.add_node("llm_node",llm_node)
+etl_analyst_graph.add_node("tool_node",tool_node)
+etl_analyst_graph.add_edge(START,"llm_node")
+def is_tool_call(state:ETLAgentSchema):
+    tool_calls=state.messages[-1].tool_calls
+    if tool_calls:
+        return "tool_node"
+    else:
+        return "end"
+
+etl_analyst_graph.add_conditional_edges("llm_node",is_tool_call,{
+    "tool_node":"tool_node",
+    "end":END
+})
+etl_analyst_graph.add_edge("tool_node","llm_node")
+etl_analyst=etl_analyst_graph.compile()
+
+if __name__ == "__main__":
+    # Compile the Graph
+    
+
+    # Optional
+    from IPython.display import display, Image
+    img = Image(etl_analyst.get_graph().draw_mermaid_png())
+    with open("etl_analyst_graph.png", "wb") as f:
+        f.write(img.data)
+
+    response = etl_analyst.invoke(
+        {"messages":[HumanMessage(content="I want to extract the data from the API endpoint 'https://pokeapi.co/api/v2/pokemon' and save it to data/extract folder in the csv folder")]}
+    )
+
+#     response = etl_analyst.invoke(
+#          {"messages":[HumanMessage(content=f"""
+#             I want to transform the data stored in the 'c:\\Data_Agent\\data\\extract\\extracted_data.csv' file 
+#             and save the transformed data in the 'c:\\Data_Agent\\data\\transform' folder in the csv format.
+#             The transformation should filter the data to show bulbasaur pokemon only.
+# """)]}
+#     )    
+
+    print(response)
+
